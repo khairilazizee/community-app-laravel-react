@@ -12,9 +12,10 @@ import { Toggle } from '@/components/ui/toggle';
 import AppLayout from '@/layouts/app-layout';
 import { update } from '@/routes/communities';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { LockKeyhole, UnlockKeyhole } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 type Community = {
     id: number;
@@ -44,26 +45,29 @@ export default function EditCommunity({ community }: Props) {
     const [activeTab, setActiveTab] = useState<string>('info');
 
     const { data, setData, put, processing } = useForm({
-        name: community.name,
-        slug: community.slug,
-        description: community.description,
+        community_name: community.name,
+        community_slug: community.slug,
+        community_description: community.description,
         is_private: community.is_private,
     });
 
     const slugified = useMemo(
         () =>
-            data.name
+            data.community_name
                 .toLowerCase()
                 .trim()
                 .replace(/\s+/g, '-')
                 .replace(/[^a-z0-9-]/g, '')
                 .replace(/-+/g, '-'),
-        [data.name],
+        [data.community_name],
     );
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(update.url(community.id)); // replace with your update route if using Wayfinder/Ziggy
+        put(update.url(community.id), {
+            onSuccess: () => toast.success('Community updated successfully.'),
+            onError: () => toast.error('Something went wrong.'),
+        }); // replace with your update route if using Wayfinder/Ziggy
     };
 
     return (
@@ -106,9 +110,12 @@ export default function EditCommunity({ community }: Props) {
                                     <Label htmlFor="name">Name</Label>
                                     <Input
                                         id="name"
-                                        value={data.name}
+                                        value={data.community_name}
                                         onChange={(e) =>
-                                            setData('name', e.target.value)
+                                            setData(
+                                                'community_name',
+                                                e.target.value,
+                                            )
                                         }
                                     />
                                 </div>
@@ -116,9 +123,12 @@ export default function EditCommunity({ community }: Props) {
                                     <Label htmlFor="slug">Slug</Label>
                                     <Input
                                         id="slug"
-                                        value={data.slug || slugified}
+                                        value={data.community_slug || slugified}
                                         onChange={(e) =>
-                                            setData('slug', e.target.value)
+                                            setData(
+                                                'community_slug',
+                                                e.target.value,
+                                            )
                                         }
                                     />
                                     <p className="text-xs text-muted-foreground">
@@ -131,10 +141,10 @@ export default function EditCommunity({ community }: Props) {
                                     </Label>
                                     <Input
                                         id="description"
-                                        value={data.description}
+                                        value={data.community_description}
                                         onChange={(e) =>
                                             setData(
-                                                'description',
+                                                'community_description',
                                                 e.target.value,
                                             )
                                         }
@@ -159,7 +169,10 @@ export default function EditCommunity({ community }: Props) {
                                         Private
                                     </Toggle>
                                 </div>
-                                <div className="flex justify-end gap-2">
+                                <div className="flex justify-between gap-2">
+                                    <Button variant="link" type="button">
+                                        <Link href="/communities">Back</Link>
+                                    </Button>
                                     <Button
                                         type="submit"
                                         variant="default"

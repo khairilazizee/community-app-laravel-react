@@ -93,9 +93,12 @@ class communitiesController extends Controller
             'slug' => $data['community_slug'],
             'description' => $data['community_description'],
             'is_private' => $data['is_private'],
+            'updated_at' => now(),
             // 'banner_image' => $data['banner_image'] ?? null,
             // 'logo_image' => $data['logo_image'] ?? null,
         ]);
+
+        $community->save();
 
         return redirect()->route('communities.index')->with('status', 'Community updated successfully.');
     }
