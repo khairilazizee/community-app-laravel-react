@@ -19,6 +19,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('communities', [communitiesController::class, 'index'])->name('communities.index');
     Route::get('communities/create', [communitiesController::class, 'create'])->name('communities.create');
     Route::post('communities/create', [communitiesController::class, 'store'])->name('communities.store');
+    Route::get('communities/{id}/edit', [communitiesController::class, 'edit'])->name('communities.edit');
+    Route::delete('communities/{id}/delete', [communitiesController::class, 'delete'])->name('communities.delete');
 
     Route::middleware(['superadmin'])->group(function () {
         Route::prefix('superadmin')->group(function () {

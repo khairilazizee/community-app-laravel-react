@@ -14,7 +14,10 @@ class communitiesController extends Controller
 {
     public function index()
     {
-        return Inertia::render('communities');
+        return Inertia::render('communities', [
+            'my_communities' => CommunitiesModel::with('members')->whereHas('members', fn($q) => $q->where('user_id', Auth::user()->id))->get(),
+            'all_communities' => CommunitiesModel::with('members')->whereDoesntHave('members', fn($q) => $q->where('user_id', Auth::user()->id))->get(),
+        ]);
     }
 
     public function create()
@@ -28,8 +31,8 @@ class communitiesController extends Controller
             'community_name' => 'required|string|max:255',
             'community_description' => 'required|string|max:255',
             'community_slug' => 'required|string|max:255',
-            'banner_image' => 'nullable|image|max:2048',
-            'logo_image' => 'nullable|image|max:2048',
+            'banner_image' => 'required|image|max:2048',
+            'logo_image' => 'required|image|max:2048',
             'is_private' => 'required|boolean',
         ]);
 
@@ -48,6 +51,8 @@ class communitiesController extends Controller
             'is_private' => $data['is_private'],
             'banner_image' => $data['banner_image'] ?? null,
             'logo_image' => $data['logo_image'] ?? null,
+            'created_at' => now(),
+            'created_by' => Auth::user()->id,
         ]);
 
         CommunityMembersModel::create([
@@ -59,5 +64,18 @@ class communitiesController extends Controller
         ]);
 
         return redirect()->route('communities.index')->with('status', 'Community created successfully.');
+    }
+
+    public function delete(int $id)
+    {
+        $community = CommunitiesModel::with('members')->findOrFail($id);
+
+        // if ($community->members->count() > 1) {
+        //     return redirect()->route('communities.index')->with('status', 'Community cannot be deleted because it has members.');
+        // }
+        $community->members()->delete();
+        $community->delete();
+
+        return redirect()->route('communities.index')->with('status', 'Community deleted successfully.');
     }
 }

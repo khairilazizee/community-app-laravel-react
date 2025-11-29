@@ -15,7 +15,6 @@ class CommunityMembersModel extends Model
         'user_id',
         'role',
         'status',
-        'created_at',
     ];
 
     protected $casts = [
@@ -25,7 +24,7 @@ class CommunityMembersModel extends Model
 
     public function community()
     {
-        return $this->belongsTo(CommunitiesModel::class);
+        return $this->belongsTo(CommunitiesModel::class, 'community_id', 'id');
     }
 
     public function user()

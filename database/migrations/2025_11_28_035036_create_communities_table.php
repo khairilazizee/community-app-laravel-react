@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->boolean('is_private')->default(false);
-            $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });
     }

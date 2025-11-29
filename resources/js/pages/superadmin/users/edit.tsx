@@ -54,7 +54,7 @@ export default function Index({
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            <div>
+                            <div className="space-y-3">
                                 <Label htmlFor="name">Name</Label>
                                 <Input
                                     name="name"
@@ -63,8 +63,13 @@ export default function Index({
                                         setData('name', e.target.value)
                                     }
                                 />
+                                {errors.name && (
+                                    <div className="text-sm text-red-500">
+                                        {errors.name}
+                                    </div>
+                                )}
                             </div>
-                            <div>
+                            <div className="space-y-3">
                                 <Label htmlFor="email">Email</Label>
                                 <Input
                                     name="email"
@@ -74,9 +79,14 @@ export default function Index({
                                         setData('email', e.target.value)
                                     }
                                 />
+                                {errors.email && (
+                                    <div className="text-sm text-red-500">
+                                        {errors.email}
+                                    </div>
+                                )}
                             </div>
 
-                            <div>
+                            <div className="space-y-3">
                                 <Label htmlFor="password">Password</Label>
                                 {!is_superadmin && (
                                     <Input
