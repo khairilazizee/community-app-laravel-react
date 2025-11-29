@@ -1,5 +1,11 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Toggle } from '@/components/ui/toggle';
 import AppLayout from '@/layouts/app-layout';
@@ -55,7 +61,10 @@ export default function Dashboard() {
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Create Your Own Community</CardTitle>
+                        <CardTitle>Create Community</CardTitle>
+                        <CardDescription>
+                            Create your own community. Place of your choice.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <form
@@ -185,12 +194,12 @@ export default function Dashboard() {
                                     </div>
                                 )}
                             </div>
-                            <div>
-                                <Button variant="default" type="submit">
-                                    Save
-                                </Button>
+                            <div className="flex justify-between gap-2">
                                 <Button variant="link" type="button">
                                     <Link href="/communities">Back</Link>
+                                </Button>
+                                <Button variant="default" type="submit">
+                                    Save
                                 </Button>
                             </div>
                         </form>

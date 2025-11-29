@@ -6,10 +6,19 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import AppLayout from '@/layouts/app-layout';
 import { create, deleteMethod } from '@/routes/communities';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { DialogDescription } from '@radix-ui/react-dialog';
 import { LockKeyhole, PlusIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -38,6 +47,8 @@ export default function Dashboard({ my_communities, all_communities }: Props) {
     const { delete: destroy } = useForm();
 
     const handleDelete = (community: any) => {
+        // add a confirmation modal message
+        // if (!window.confirm(`Delete "${community.name}"?`)) return;
         destroy(deleteMethod.url(community.id), {
             onSuccess: () => toast.success('Community deleted successfully.'),
             onError: () => toast.error('Something went wrong.'),
@@ -77,34 +88,78 @@ export default function Dashboard({ my_communities, all_communities }: Props) {
                                         <CardContent>
                                             <div className="flex gap-2">
                                                 <Link
-                                                    href={`/communities/${community.id}/edit`}
-                                                >
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                    >
-                                                        Edit
-                                                    </Button>
-                                                </Link>
-                                                <Link
                                                     href={`/communities/${community.slug}`}
                                                 >
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
+                                                        className="hover:cursor-pointer"
                                                     >
                                                         View
                                                     </Button>
                                                 </Link>
-                                                <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                        handleDelete(community)
-                                                    }
+                                                <Link
+                                                    href={`/communities/${community.id}/edit`}
                                                 >
-                                                    Delete
-                                                </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="hover:cursor-pointer"
+                                                    >
+                                                        Edit
+                                                    </Button>
+                                                </Link>
+                                                <Dialog>
+                                                    <DialogTrigger asChild>
+                                                        <Button
+                                                            variant="destructive"
+                                                            size="sm"
+                                                            className="hover:cursor-pointer"
+                                                        >
+                                                            Delete
+                                                        </Button>
+                                                    </DialogTrigger>
+                                                    <DialogContent>
+                                                        <DialogHeader>
+                                                            Confirm Delete This
+                                                            Community?
+                                                        </DialogHeader>
+                                                        <DialogDescription>
+                                                            <p>
+                                                                This action{' '}
+                                                                <strong>
+                                                                    cannot
+                                                                </strong>
+                                                                {''} be undone
+                                                            </p>
+                                                        </DialogDescription>
+                                                        <DialogFooter>
+                                                            <DialogClose>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    className="hover:cursor-pointer"
+                                                                >
+                                                                    Cancel
+                                                                </Button>
+                                                            </DialogClose>
+                                                            <DialogClose>
+                                                                <Button
+                                                                    variant="destructive"
+                                                                    size="sm"
+                                                                    className="hover:cursor-pointer"
+                                                                    onClick={() =>
+                                                                        handleDelete(
+                                                                            community,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    Confirm
+                                                                    Delete
+                                                                </Button>
+                                                            </DialogClose>
+                                                        </DialogFooter>
+                                                    </DialogContent>
+                                                </Dialog>
                                             </div>
                                         </CardContent>
                                     </Card>

@@ -20,6 +20,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('communities/create', [communitiesController::class, 'create'])->name('communities.create');
     Route::post('communities/create', [communitiesController::class, 'store'])->name('communities.store');
     Route::get('communities/{id}/edit', [communitiesController::class, 'edit'])->name('communities.edit');
+    Route::put('communities/{id}/update', [communitiesController::class, 'update'])->name('communities.update');
     Route::delete('communities/{id}/delete', [communitiesController::class, 'delete'])->name('communities.delete');
 
     Route::middleware(['superadmin'])->group(function () {

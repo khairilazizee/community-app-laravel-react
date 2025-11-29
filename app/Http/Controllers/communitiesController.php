@@ -66,6 +66,40 @@ class communitiesController extends Controller
         return redirect()->route('communities.index')->with('status', 'Community created successfully.');
     }
 
+    public function edit(int $id)
+    {
+        $community = CommunitiesModel::with('members')->findOrFail($id);
+
+        return Inertia::render('communities/edit', [
+            'community' => $community
+        ]);
+    }
+
+    public function update(Request $request, int $id)
+    {
+        $data = $request->validate([
+            'community_name' => 'required|string|max:255',
+            'community_description' => 'required|string|max:255',
+            'community_slug' => 'required|string|max:255',
+            // 'banner_image' => 'required|image|max:2048',
+            // 'logo_image' => 'required|image|max:2048',
+            'is_private' => 'required|boolean',
+        ]);
+
+        $community = CommunitiesModel::findOrFail($id);
+
+        $community->fill([
+            'name' => $data['community_name'],
+            'slug' => $data['community_slug'],
+            'description' => $data['community_description'],
+            'is_private' => $data['is_private'],
+            // 'banner_image' => $data['banner_image'] ?? null,
+            // 'logo_image' => $data['logo_image'] ?? null,
+        ]);
+
+        return redirect()->route('communities.index')->with('status', 'Community updated successfully.');
+    }
+
     public function delete(int $id)
     {
         $community = CommunitiesModel::with('members')->findOrFail($id);
