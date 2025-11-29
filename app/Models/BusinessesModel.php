@@ -24,8 +24,6 @@ class BusinessesModel extends Model
         'email',
         'is_private',
         'is_active',
-        'created_by',
-        'updated_by',
     ];
 
     public function community()

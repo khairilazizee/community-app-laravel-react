@@ -13,8 +13,8 @@ class CommunitiesModel extends Model
         'slug',
         'description',
         'is_private',
-        'created_by',
-        'updated_by',
+        'banner_image',
+        'logo_image',
     ];
 
     public function members()

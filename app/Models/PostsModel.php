@@ -17,8 +17,6 @@ class PostsModel extends Model
         'type',
         'published_at',
         'is_active',
-        'created_by',
-        'updated_by',
     ];
 
     protected $casts = [

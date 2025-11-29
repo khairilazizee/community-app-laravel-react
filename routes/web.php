@@ -16,8 +16,9 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [dashboardController::class, 'index'])->name('dashboard');
-    Route::get('communities', [communitiesController::class, 'index'])->name('communities');
+    Route::get('communities', [communitiesController::class, 'index'])->name('communities.index');
     Route::get('communities/create', [communitiesController::class, 'create'])->name('communities.create');
+    Route::post('communities/create', [communitiesController::class, 'store'])->name('communities.store');
 
     Route::middleware(['superadmin'])->group(function () {
         Route::prefix('superadmin')->group(function () {

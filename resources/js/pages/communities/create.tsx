@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Toggle } from '@/components/ui/toggle';
 import AppLayout from '@/layouts/app-layout';
+import { create } from '@/routes/communities';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Label } from '@radix-ui/react-dropdown-menu';
@@ -27,10 +28,15 @@ export default function Dashboard() {
         community_name: '',
         community_description: '',
         community_slug: '',
-        image_banner: '',
-        image_logo: '',
+        banner_image: '',
+        logo_image: '',
         is_private: false,
     });
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        post(create.url());
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -41,7 +47,11 @@ export default function Dashboard() {
                         <CardTitle>Create Community</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <form className="space-y-6">
+                        <form
+                            className="space-y-6"
+                            onSubmit={handleSubmit}
+                            encType="multipart/form-data"
+                        >
                             <div>
                                 <Label>Community Name</Label>
                                 <Input
@@ -83,11 +93,11 @@ export default function Dashboard() {
                             </div>
                             <div>
                                 <Label>Image Banner</Label>
-                                <Input type="file" name="image_banner" />
+                                <Input type="file" name="banner_image" />
                             </div>
                             <div>
                                 <Label>Image Logo</Label>
-                                <Input type="file" name="image_logo" />
+                                <Input type="file" name="logo_image" />
                             </div>
                             <div>
                                 <Toggle

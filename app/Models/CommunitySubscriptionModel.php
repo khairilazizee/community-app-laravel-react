@@ -14,8 +14,6 @@ class CommunitySubscriptionModel extends Model
         'user_id',
         'subscription_status',
         'subscription_plan',
-        'created_by',
-        'updated_by',
     ];
 
     protected $casts = [
