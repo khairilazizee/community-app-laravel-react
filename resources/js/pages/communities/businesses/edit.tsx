@@ -34,9 +34,17 @@ type Props = {
     community: Community;
     business: Business;
     members: Member[];
+    can_edit_fields: boolean;
+    can_change_owner: boolean;
 };
 
-export default function BusinessesEdit({ community, business, members }: Props) {
+export default function BusinessesEdit({
+    community,
+    business,
+    members,
+    can_edit_fields,
+    can_change_owner,
+}: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Communities', href: '/communities' },
         { title: community.name, href: `/communities/${community.id}/edit` },
@@ -85,6 +93,7 @@ export default function BusinessesEdit({ community, business, members }: Props) 
                                     onChange={(e) =>
                                         setData('name', e.target.value)
                                     }
+                                    disabled={!can_edit_fields}
                                 />
                             </div>
                             <div>
@@ -94,6 +103,7 @@ export default function BusinessesEdit({ community, business, members }: Props) 
                                     onChange={(e) =>
                                         setData('type', e.target.value)
                                     }
+                                    disabled={!can_edit_fields}
                                 />
                             </div>
                             <div>
@@ -103,6 +113,7 @@ export default function BusinessesEdit({ community, business, members }: Props) 
                                     onChange={(e) =>
                                         setData('description', e.target.value)
                                     }
+                                    disabled={!can_edit_fields}
                                 />
                             </div>
                             <div>
@@ -116,6 +127,7 @@ export default function BusinessesEdit({ community, business, members }: Props) 
                                             toNumberOrNull(e.target.value),
                                         )
                                     }
+                                    disabled={!can_change_owner}
                                 >
                                     {members.length === 0 && (
                                         <option value="">

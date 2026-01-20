@@ -17,6 +17,7 @@ import {
     BookOpen,
     ClipboardList,
     Folder,
+    BriefcaseBusiness,
     LayoutGrid,
     UsersRound,
 } from 'lucide-react';
@@ -47,6 +48,13 @@ const mainNavItems: NavItem[] = [
         icon: ClipboardList,
         role: 'all',
     },
+    {
+        title: 'Owner Dashboard',
+        href: '/owner',
+        icon: BriefcaseBusiness,
+        role: 'all',
+        requiresOwner: true,
+    },
 ];
 
 const footerNavItems: NavItem[] = [
@@ -65,12 +73,16 @@ const footerNavItems: NavItem[] = [
 export function AppSidebar() {
     const { props } = usePage();
     const isSuperadmin = Boolean(props.auth?.user?.is_superadmin);
+    const hasOwnerItems = Boolean(props.auth?.has_owner_items);
 
     const visibleMainItems = mainNavItems.filter((item) => {
         if (!item.role || item.role === 'all') return true;
         if (item.role === 'superadmin') return isSuperadmin;
         return false;
     });
+    const filteredMainItems = visibleMainItems.filter(
+        (item) => !item.requiresOwner || hasOwnerItems,
+    );
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -86,7 +98,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={visibleMainItems} />
+                <NavMain items={filteredMainItems} />
             </SidebarContent>
 
             <SidebarFooter>

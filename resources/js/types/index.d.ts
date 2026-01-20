@@ -20,6 +20,7 @@ export interface NavItem {
     href: NonNullable<InertiaLinkProps['href']>;
     icon?: LucideIcon | null;
     role?: string;
+    requiresOwner?: boolean;
     isActive?: boolean;
 }
 

@@ -149,6 +149,16 @@ export default function CommunityShow({
                                     ? ` • Member role: ${member_role}`
                                     : null}
                             </div>
+                            {auth.user && is_member && (
+                                <div className="mt-3">
+                                    <Link
+                                        href={`/communities/${community.slug}/member`}
+                                        className="inline-flex items-center rounded-full border border-border px-4 py-1.5 text-sm text-foreground transition hover:border-foreground/40"
+                                    >
+                                        Member view
+                                    </Link>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 

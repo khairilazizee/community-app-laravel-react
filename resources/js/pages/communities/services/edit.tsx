@@ -33,9 +33,17 @@ type Props = {
     community: Community;
     service: Service;
     members: Member[];
+    can_edit_fields: boolean;
+    can_change_owner: boolean;
 };
 
-export default function ServicesEdit({ community, service, members }: Props) {
+export default function ServicesEdit({
+    community,
+    service,
+    members,
+    can_edit_fields,
+    can_change_owner,
+}: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Communities', href: '/communities' },
         { title: community.name, href: `/communities/${community.id}/edit` },
@@ -83,6 +91,7 @@ export default function ServicesEdit({ community, service, members }: Props) {
                                     onChange={(e) =>
                                         setData('name', e.target.value)
                                     }
+                                    disabled={!can_edit_fields}
                                 />
                             </div>
                             <div>
@@ -92,6 +101,7 @@ export default function ServicesEdit({ community, service, members }: Props) {
                                     onChange={(e) =>
                                         setData('description', e.target.value)
                                     }
+                                    disabled={!can_edit_fields}
                                 />
                             </div>
                             <div>
@@ -105,6 +115,7 @@ export default function ServicesEdit({ community, service, members }: Props) {
                                             toNumberOrNull(e.target.value),
                                         )
                                     }
+                                    disabled={!can_change_owner}
                                 >
                                     {members.length === 0 && (
                                         <option value="">

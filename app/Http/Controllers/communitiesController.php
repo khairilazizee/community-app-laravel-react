@@ -10,6 +10,7 @@ use App\Models\CommunityMembersModel;
 use App\Models\NewsModel;
 use App\Models\PostsModel;
 use App\Models\ServicesModel;
+use App\Models\BusinessesModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -57,6 +58,41 @@ class communitiesController extends Controller
             'businesses' => $community->businesses()->latest()->get(),
             'is_member' => (bool) $member,
             'member_role' => $member?->role?->value,
+        ]);
+    }
+
+    public function memberShow(string $slug)
+    {
+        $community = CommunitiesModel::where('slug', $slug)->firstOrFail();
+        $member = $community->members()
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (!$member) {
+            abort(403, 'Unauthorized');
+        }
+
+        $ownedBusinesses = BusinessesModel::where('community_id', $community->id)
+            ->where('owner_id', Auth::id())
+            ->latest()
+            ->get();
+        $ownedServices = ServicesModel::where('community_id', $community->id)
+            ->where('owner_id', Auth::id())
+            ->latest()
+            ->get();
+
+        return Inertia::render('communities/member', [
+            'community' => $community,
+            'posts' => PostsModel::where('community_id', $community->id)->latest()->get(),
+            'news' => NewsModel::where('community_id', $community->id)->latest()->get(),
+            'services' => ServicesModel::where('community_id', $community->id)->latest()->get(),
+            'businesses' => $community->businesses()->latest()->get(),
+            'member' => [
+                'role' => $member->role?->value,
+                'status' => $member->status?->value,
+            ],
+            'owned_businesses' => $ownedBusinesses,
+            'owned_services' => $ownedServices,
         ]);
     }
 

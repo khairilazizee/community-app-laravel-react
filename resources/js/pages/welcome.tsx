@@ -20,10 +20,10 @@ export default function Welcome({
             </Head>
             <div className="min-h-screen bg-background text-foreground">
                 <div className="relative overflow-hidden">
-                    <div className="absolute inset-0 [--sun:oklch(0.98_0.04_85)] [--sky:oklch(0.96_0.04_210)] dark:[--sun:oklch(0.22_0.05_85)] dark:[--sky:oklch(0.18_0.04_210)]">
-                        <div className="absolute -top-32 left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-[var(--sky)] blur-[120px] opacity-80" />
-                        <div className="absolute -bottom-32 left-12 h-[24rem] w-[24rem] rounded-full bg-[var(--sun)] blur-[110px] opacity-75" />
-                        <div className="absolute right-10 top-24 h-20 w-20 rounded-full border border-foreground/10 bg-background/70 shadow-[0_0_0_12px_rgba(255,255,255,0.35)] dark:shadow-[0_0_0_12px_rgba(10,10,10,0.35)]" />
+                    <div className="absolute inset-0 [--sky:oklch(0.96_0.04_210)] [--sun:oklch(0.98_0.04_85)] dark:[--sky:oklch(0.18_0.04_210)] dark:[--sun:oklch(0.22_0.05_85)]">
+                        <div className="absolute -top-32 left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-[var(--sky)] opacity-80 blur-[120px]" />
+                        <div className="absolute -bottom-32 left-12 h-[24rem] w-[24rem] rounded-full bg-[var(--sun)] opacity-75 blur-[110px]" />
+                        <div className="absolute top-24 right-10 h-20 w-20 rounded-full border border-foreground/10 bg-background/70 shadow-[0_0_0_12px_rgba(255,255,255,0.35)] dark:shadow-[0_0_0_12px_rgba(10,10,10,0.35)]" />
                     </div>
 
                     <header className="relative mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
@@ -46,7 +46,7 @@ export default function Welcome({
                                     href={dashboard()}
                                     className="rounded-full border border-border px-4 py-1.5 text-sm transition hover:border-foreground/40"
                                 >
-                                    Dashboard
+                                    Community Dashboard
                                 </Link>
                             ) : (
                                 <>
@@ -69,13 +69,13 @@ export default function Welcome({
                         </nav>
                     </header>
 
-                    <main className="relative mx-auto flex w-full max-w-6xl flex-col gap-12 px-6 pb-16 pt-10 lg:flex-row lg:items-center lg:gap-16 lg:pb-24">
+                    <main className="relative mx-auto flex w-full max-w-6xl flex-col gap-12 px-6 pt-10 pb-16 lg:flex-row lg:items-center lg:gap-16 lg:pb-24">
                         <div className="flex-1 space-y-6">
                             <div className="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1 text-xs text-muted-foreground shadow-sm">
                                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
                                 Family-friendly, trusted, and kind.
                             </div>
-                            <h1 className="font-[Fraunces] text-4xl font-semibold leading-tight md:text-5xl">
+                            <h1 className="font-[Fraunces] text-4xl leading-tight font-semibold md:text-5xl">
                                 A cozy corner for every community story.
                             </h1>
                             <p className="max-w-xl text-base text-muted-foreground">
@@ -90,12 +90,6 @@ export default function Welcome({
                                 >
                                     Start a community
                                 </Link>
-                                <Link
-                                    href="/communities"
-                                    className="rounded-full border border-border px-5 py-2 text-sm font-medium text-foreground/80 transition hover:border-foreground/40"
-                                >
-                                    Browse communities
-                                </Link>
                             </div>
                             <div className="grid grid-cols-3 gap-4 pt-2 text-sm">
                                 <div className="rounded-2xl border border-border bg-background/70 px-4 py-3">
@@ -105,7 +99,9 @@ export default function Welcome({
                                     </div>
                                 </div>
                                 <div className="rounded-2xl border border-border bg-background/70 px-4 py-3">
-                                    <div className="font-semibold">Services</div>
+                                    <div className="font-semibold">
+                                        Services
+                                    </div>
                                     <div className="text-muted-foreground">
                                         Trusted helpers
                                     </div>
@@ -213,12 +209,6 @@ export default function Welcome({
                                 className="rounded-full bg-foreground px-6 py-2 text-sm font-medium text-background transition hover:-translate-y-0.5"
                             >
                                 Create your community
-                            </Link>
-                            <Link
-                                href="/communities"
-                                className="rounded-full border border-border px-6 py-2 text-sm font-medium text-foreground/80 transition hover:border-foreground/40"
-                            >
-                                Browse public spaces
                             </Link>
                         </div>
                     </div>

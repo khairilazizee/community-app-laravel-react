@@ -50,10 +50,16 @@ class CommunityServicesController extends Controller
             abort(403, 'Unauthorized');
         }
 
+        $isAdmin = $member->role === CommunityMemberRole::Admin;
+        $isOwner = $service->owner_id === Auth::id();
+        $hasOwner = !is_null($service->owner_id);
+
         return Inertia::render('communities/services/edit', [
             'community' => $community,
             'service' => $service,
             'members' => $community->members,
+            'can_edit_fields' => $isOwner || ($isAdmin && !$hasOwner),
+            'can_change_owner' => $isAdmin,
         ]);
     }
 
@@ -106,46 +112,62 @@ class CommunityServicesController extends Controller
         $member = $this->requireMember($community);
 
         $service = ServicesModel::where('community_id', $community->id)->findOrFail($serviceId);
-        if ($member->role !== CommunityMemberRole::Admin && $service->owner_id !== Auth::id()) {
+        $isAdmin = $member->role === CommunityMemberRole::Admin;
+        $isOwner = $service->owner_id === Auth::id();
+        $hasOwner = !is_null($service->owner_id);
+
+        if (!$isAdmin && !$isOwner) {
             abort(403, 'Unauthorized');
         }
 
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'address' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:255',
-            'state' => 'nullable|string|max:255',
-            'zip' => 'nullable|string|max:255',
-            'country' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:255',
-            'website' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'owner_id' => 'nullable|integer|exists:users,id',
-            'is_private' => 'nullable|boolean',
-            'is_active' => 'nullable|boolean',
-        ]);
+        $canEditFields = $isOwner || ($isAdmin && !$hasOwner);
+
+        if (!$canEditFields && $isAdmin) {
+            $data = $request->validate([
+                'owner_id' => 'nullable|integer|exists:users,id',
+            ]);
+        } else {
+            $data = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'address' => 'nullable|string|max:255',
+                'city' => 'nullable|string|max:255',
+                'state' => 'nullable|string|max:255',
+                'zip' => 'nullable|string|max:255',
+                'country' => 'nullable|string|max:255',
+                'phone' => 'nullable|string|max:255',
+                'website' => 'nullable|string|max:255',
+                'email' => 'nullable|email|max:255',
+                'owner_id' => 'nullable|integer|exists:users,id',
+                'is_private' => 'nullable|boolean',
+                'is_active' => 'nullable|boolean',
+            ]);
+        }
 
         $ownerId = $data['owner_id'] ?? $service->owner_id;
-        if ($member->role === CommunityMemberRole::Admin) {
+        if ($isAdmin) {
             $ownerId = $this->ensureOwnerMember($community, $ownerId);
         }
 
-        $service->fill([
-            'owner_id' => $ownerId,
-            'name' => $data['name'],
-            'description' => $data['description'] ?? null,
-            'address' => $data['address'] ?? null,
-            'city' => $data['city'] ?? null,
-            'state' => $data['state'] ?? null,
-            'zip' => $data['zip'] ?? null,
-            'country' => $data['country'] ?? null,
-            'phone' => $data['phone'] ?? null,
-            'website' => $data['website'] ?? null,
-            'email' => $data['email'] ?? null,
-            'is_private' => $data['is_private'] ?? $service->is_private,
-            'is_active' => $data['is_active'] ?? $service->is_active,
-        ]);
+        if ($canEditFields) {
+            $service->fill([
+                'owner_id' => $ownerId,
+                'name' => $data['name'],
+                'description' => $data['description'] ?? null,
+                'address' => $data['address'] ?? null,
+                'city' => $data['city'] ?? null,
+                'state' => $data['state'] ?? null,
+                'zip' => $data['zip'] ?? null,
+                'country' => $data['country'] ?? null,
+                'phone' => $data['phone'] ?? null,
+                'website' => $data['website'] ?? null,
+                'email' => $data['email'] ?? null,
+                'is_private' => $data['is_private'] ?? $service->is_private,
+                'is_active' => $data['is_active'] ?? $service->is_active,
+            ]);
+        } else {
+            $service->owner_id = $ownerId;
+        }
         $service->save();
 
         return back()->with('status', 'Service updated successfully.');
@@ -154,9 +176,16 @@ class CommunityServicesController extends Controller
     public function delete(int $communityId, int $serviceId)
     {
         $community = CommunitiesModel::findOrFail($communityId);
-        $this->requireAdmin($community);
+        $member = $this->requireMember($community);
 
         $service = ServicesModel::where('community_id', $community->id)->findOrFail($serviceId);
+        $isAdmin = $member->role === CommunityMemberRole::Admin;
+        $isOwner = $service->owner_id === Auth::id();
+        $hasOwner = !is_null($service->owner_id);
+
+        if (!$isOwner && !($isAdmin && !$hasOwner)) {
+            abort(403, 'Unauthorized');
+        }
         $service->delete();
 
         return back()->with('status', 'Service deleted successfully.');

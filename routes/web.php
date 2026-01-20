@@ -7,6 +7,7 @@ use App\Http\Controllers\CommunityNewsController;
 use App\Http\Controllers\CommunityPostsController;
 use App\Http\Controllers\CommunityServicesController;
 use App\Http\Controllers\CommentsController;
+use App\Http\Controllers\OwnerDashboardController;
 use App\Http\Controllers\superadmin\communitiesController as SuperadminCommunitiesController;
 use App\Http\Controllers\dashboardController;
 use App\Http\Controllers\superadmin\usersController as SuperadminUsersController;
@@ -64,8 +65,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('communities/{id}/businesses/{businessId}', [CommunityBusinessesController::class, 'update'])->name('communities.businesses.update');
     Route::delete('communities/{id}/businesses/{businessId}', [CommunityBusinessesController::class, 'delete'])->name('communities.businesses.delete');
 
+    Route::get('owner', [OwnerDashboardController::class, 'index'])->name('owner.index');
+
     Route::post('comments', [CommentsController::class, 'store'])->name('comments.store');
     Route::delete('comments/{commentId}', [CommentsController::class, 'delete'])->name('comments.delete');
+
+    Route::get('communities/{slug}/member', [communitiesController::class, 'memberShow'])->name('communities.member');
 
     Route::middleware(['superadmin'])->group(function () {
         Route::prefix('superadmin')->group(function () {
