@@ -14,13 +14,21 @@ import AuthLayout from '@/layouts/auth-layout';
 export default function Register() {
     const communityParam = useMemo(() => {
         if (typeof window === 'undefined') return '';
-        return new URLSearchParams(window.location.search).get('community') ?? '';
+        return (
+            new URLSearchParams(window.location.search).get('community') ?? ''
+        );
     }, []);
 
     return (
         <AuthLayout
-            title="Create an account"
-            description="Enter your details below to create your account"
+            title={
+                communityParam ? 'Join this community' : 'Create your community'
+            }
+            description={
+                communityParam
+                    ? 'Enter your details below to join this community'
+                    : 'Enter your details below to create your community'
+            }
         >
             <Head title="Register" />
             <Form
@@ -41,14 +49,37 @@ export default function Register() {
                                     . An admin will review your request.
                                 </div>
                             )}
+                            {!communityParam && (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="community_name">
+                                        Community name
+                                    </Label>
+                                    <Input
+                                        id="community_name"
+                                        type="text"
+                                        required
+                                        tabIndex={1}
+                                        name="community_name"
+                                        placeholder="Your community name"
+                                    />
+                                    <InputError
+                                        message={errors.community_name}
+                                        className="mt-2"
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                        A private community will be created for
+                                        you automatically.
+                                    </p>
+                                </div>
+                            )}
                             <div className="grid gap-2">
                                 <Label htmlFor="name">Name</Label>
                                 <Input
                                     id="name"
                                     type="text"
                                     required
-                                    autoFocus
-                                    tabIndex={1}
+                                    autoFocus={!communityParam}
+                                    tabIndex={communityParam ? 1 : 2}
                                     autoComplete="name"
                                     name="name"
                                     placeholder="Full name"
@@ -65,7 +96,7 @@ export default function Register() {
                                     id="email"
                                     type="email"
                                     required
-                                    tabIndex={2}
+                                    tabIndex={communityParam ? 2 : 3}
                                     autoComplete="email"
                                     name="email"
                                     placeholder="email@example.com"
@@ -79,7 +110,7 @@ export default function Register() {
                                     id="password"
                                     type="password"
                                     required
-                                    tabIndex={3}
+                                    tabIndex={communityParam ? 3 : 4}
                                     autoComplete="new-password"
                                     name="password"
                                     placeholder="Password"
@@ -95,7 +126,7 @@ export default function Register() {
                                     id="password_confirmation"
                                     type="password"
                                     required
-                                    tabIndex={4}
+                                    tabIndex={communityParam ? 4 : 5}
                                     autoComplete="new-password"
                                     name="password_confirmation"
                                     placeholder="Confirm password"
@@ -108,7 +139,7 @@ export default function Register() {
                             <Button
                                 type="submit"
                                 className="mt-2 w-full"
-                                tabIndex={5}
+                                tabIndex={communityParam ? 5 : 6}
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
@@ -125,7 +156,10 @@ export default function Register() {
 
                         <div className="text-center text-sm text-muted-foreground">
                             Already have an account?{' '}
-                            <TextLink href={login()} tabIndex={6}>
+                            <TextLink
+                                href={login()}
+                                tabIndex={communityParam ? 6 : 7}
+                            >
                                 Log in
                             </TextLink>
                         </div>

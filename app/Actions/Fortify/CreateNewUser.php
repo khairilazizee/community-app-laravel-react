@@ -7,6 +7,7 @@ use App\CommunityMemberStatus;
 use App\Models\CommunitiesModel;
 use App\Models\CommunityMembersModel;
 use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
@@ -22,7 +23,9 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
-        Validator::make($input, [
+        $hasJoinRequest = !empty($input['community']);
+
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',
@@ -33,7 +36,10 @@ class CreateNewUser implements CreatesNewUsers
             ],
             'password' => $this->passwordRules(),
             'community' => ['nullable', 'string', 'max:255'],
-        ])->validate();
+            'community_name' => [$hasJoinRequest ? 'nullable' : 'required', 'string', 'max:255'],
+        ];
+
+        Validator::make($input, $rules)->validate();
 
         $user = User::create([
             'name' => $input['name'],
@@ -41,7 +47,7 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $input['password'],
         ]);
 
-        if (!empty($input['community'])) {
+        if ($hasJoinRequest) {
             $community = CommunitiesModel::where('slug', $input['community'])
                 ->orWhere('id', $input['community'])
                 ->first();
@@ -58,8 +64,41 @@ class CreateNewUser implements CreatesNewUsers
                     ]
                 );
             }
+        } else {
+            $community = CommunitiesModel::create([
+                'name' => $input['community_name'],
+                'slug' => $this->generateSlug($input['community_name']),
+                'description' => null,
+                'is_private' => true,
+            ]);
+
+            CommunityMembersModel::create([
+                'community_id' => $community->id,
+                'user_id' => $user->id,
+                'role' => CommunityMemberRole::Admin,
+                'status' => CommunityMemberStatus::Active,
+            ]);
         }
 
         return $user;
+    }
+
+    private function generateSlug(string $name): string
+    {
+        $base = Str::slug($name);
+        $slug = $base !== '' ? $base : Str::random(8);
+        $counter = 1;
+
+        while ($this->slugExists($slug)) {
+            $slug = $base . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
+    }
+
+    private function slugExists(string $slug): bool
+    {
+        return CommunitiesModel::where('slug', $slug)->exists();
     }
 }
