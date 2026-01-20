@@ -5,10 +5,11 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { dashboard, login, register } from '@/routes';
+import { dashboard, login } from '@/routes';
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { LockKeyhole, UnlockKeyhole } from 'lucide-react';
+import { useState } from 'react';
 
 type Community = {
     id: number;
@@ -23,12 +24,14 @@ type Post = {
     title: string;
     content: string;
     type: string;
+    slug: string | null;
 };
 
 type News = {
     id: number;
     title: string;
     content: string;
+    slug: string | null;
 };
 
 type Service = {
@@ -63,11 +66,34 @@ export default function CommunityShow({
     member_role,
 }: Props) {
     const { auth } = usePage<SharedData>().props;
+    const [activeTab, setActiveTab] = useState<
+        'posts' | 'news' | 'services' | 'businesses'
+    >('posts');
+
+    const tabButton = (
+        id: 'posts' | 'news' | 'services' | 'businesses',
+        label: string,
+    ) => (
+        <button
+            type="button"
+            onClick={() => setActiveTab(id)}
+            className={`rounded-full border px-4 py-1.5 text-sm transition ${
+                activeTab === id
+                    ? 'border-foreground/30 bg-foreground text-background'
+                    : 'border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground'
+            }`}
+        >
+            {label}
+        </button>
+    );
+
+    const [latestPost, ...olderPosts] = posts;
+    const [latestNews, ...olderNews] = news;
 
     return (
         <>
             <Head title={community.name} />
-            <div className="min-h-screen bg-slate-50">
+            <div className="min-h-screen bg-background">
                 <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-6">
                     <Link href="/" className="text-lg font-semibold">
                         Communities
@@ -76,7 +102,7 @@ export default function CommunityShow({
                         {auth.user ? (
                             <Link
                                 href={dashboard()}
-                                className="rounded-md border border-slate-200 px-3 py-1.5 hover:border-slate-300"
+                                className="rounded-md border border-border px-3 py-1.5 hover:border-foreground/30"
                             >
                                 Dashboard
                             </Link>
@@ -84,15 +110,15 @@ export default function CommunityShow({
                             <>
                                 <Link
                                     href={login()}
-                                    className="rounded-md border border-transparent px-3 py-1.5 hover:border-slate-200"
+                                    className="rounded-md border border-transparent px-3 py-1.5 hover:border-foreground/20"
                                 >
                                     Log in
                                 </Link>
                                 <Link
-                                    href={register()}
-                                    className="rounded-md border border-slate-200 px-3 py-1.5 hover:border-slate-300"
+                                    href={`/register?community=${community.slug}`}
+                                    className="inline-flex items-center rounded-full border border-foreground/20 bg-foreground px-4 py-1.5 text-sm text-background transition hover:-translate-y-0.5"
                                 >
-                                    Register
+                                    Request to join
                                 </Link>
                             </>
                         )}
@@ -105,9 +131,9 @@ export default function CommunityShow({
                             <CardTitle className="flex items-center gap-2">
                                 {community.name}
                                 {community.is_private ? (
-                                    <LockKeyhole className="h-4 w-4 text-slate-500" />
+                                    <LockKeyhole className="h-4 w-4 text-muted-foreground" />
                                 ) : (
-                                    <UnlockKeyhole className="h-4 w-4 text-slate-500" />
+                                    <UnlockKeyhole className="h-4 w-4 text-muted-foreground" />
                                 )}
                             </CardTitle>
                             <CardDescription>
@@ -115,7 +141,7 @@ export default function CommunityShow({
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-sm text-slate-600">
+                            <div className="text-sm text-muted-foreground">
                                 {community.is_private
                                     ? 'Private community'
                                     : 'Public community'}
@@ -126,116 +152,168 @@ export default function CommunityShow({
                         </CardContent>
                     </Card>
 
-                    <div className="grid gap-6 md:grid-cols-2">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Posts</CardTitle>
-                                <CardDescription>
-                                    Community discussions and announcements.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm">
-                                {posts.length === 0 && (
-                                    <p className="text-slate-500">
-                                        No posts yet.
-                                    </p>
-                                )}
-                                {posts.map((post) => (
-                                    <div key={post.id} className="space-y-1">
-                                        <div className="font-medium">
-                                            {post.title}
+                    <div className="flex flex-wrap gap-2">
+                        {tabButton('posts', 'Posts')}
+                        {tabButton('news', 'News')}
+                        {tabButton('services', 'Services')}
+                        {tabButton('businesses', 'Businesses')}
+                    </div>
+
+                    {activeTab === 'posts' && (
+                        <div className="grid gap-6 md:grid-cols-2">
+                            <Card className="md:col-span-2">
+                                <CardHeader>
+                                    <CardTitle>Latest Post</CardTitle>
+                                    <CardDescription>
+                                        Community discussions and announcements.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {!latestPost ? (
+                                        <p className="text-sm text-muted-foreground">
+                                            No posts yet.
+                                        </p>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <Link
+                                                href={`/communities/${community.slug}/posts/${latestPost.slug ?? latestPost.id}`}
+                                                className="text-xl font-semibold hover:underline"
+                                            >
+                                                {latestPost.title}
+                                            </Link>
+                                            <p className="text-sm text-muted-foreground">
+                                                {latestPost.content}
+                                            </p>
                                         </div>
-                                        <p className="text-slate-600">
+                                    )}
+                                </CardContent>
+                            </Card>
+                            {olderPosts.map((post) => (
+                                <Card key={post.id}>
+                                    <CardHeader>
+                                        <CardTitle className="text-base">
+                                            <Link
+                                                href={`/communities/${community.slug}/posts/${post.slug ?? post.id}`}
+                                                className="hover:underline"
+                                            >
+                                                {post.title}
+                                            </Link>
+                                        </CardTitle>
+                                        <CardDescription>Post</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-sm text-muted-foreground">
                                             {post.content}
                                         </p>
-                                    </div>
-                                ))}
-                            </CardContent>
-                        </Card>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>News</CardTitle>
-                                <CardDescription>
-                                    Updates from the community team.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm">
-                                {news.length === 0 && (
-                                    <p className="text-slate-500">
-                                        No news yet.
-                                    </p>
-                                )}
-                                {news.map((item) => (
-                                    <div key={item.id} className="space-y-1">
-                                        <div className="font-medium">
-                                            {item.title}
+                    {activeTab === 'news' && (
+                        <div className="grid gap-6 md:grid-cols-2">
+                            <Card className="md:col-span-2">
+                                <CardHeader>
+                                    <CardTitle>Latest News</CardTitle>
+                                    <CardDescription>
+                                        Updates from the community team.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {!latestNews ? (
+                                        <p className="text-sm text-muted-foreground">
+                                            No news yet.
+                                        </p>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <Link
+                                                href={`/communities/${community.slug}/news/${latestNews.slug ?? latestNews.id}`}
+                                                className="text-xl font-semibold hover:underline"
+                                            >
+                                                {latestNews.title}
+                                            </Link>
+                                            <p className="text-sm text-muted-foreground">
+                                                {latestNews.content}
+                                            </p>
                                         </div>
-                                        <p className="text-slate-600">
+                                    )}
+                                </CardContent>
+                            </Card>
+                            {olderNews.map((item) => (
+                                <Card key={item.id}>
+                                    <CardHeader>
+                                        <CardTitle className="text-base">
+                                            <Link
+                                                href={`/communities/${community.slug}/news/${item.slug ?? item.id}`}
+                                                className="hover:underline"
+                                            >
+                                                {item.title}
+                                            </Link>
+                                        </CardTitle>
+                                        <CardDescription>News</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-sm text-muted-foreground">
                                             {item.content}
                                         </p>
-                                    </div>
-                                ))}
-                            </CardContent>
-                        </Card>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Services</CardTitle>
-                                <CardDescription>
-                                    Member-owned services in this community.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm">
-                                {services.length === 0 && (
-                                    <p className="text-slate-500">
-                                        No services yet.
-                                    </p>
-                                )}
-                                {services.map((service) => (
-                                    <div key={service.id} className="space-y-1">
-                                        <div className="font-medium">
-                                            {service.name}
-                                        </div>
-                                        <p className="text-slate-600">
+                    {activeTab === 'services' && (
+                        <div className="grid gap-4 md:grid-cols-2">
+                            {services.map((service) => (
+                                <Card key={service.id}>
+                                    <CardHeader>
+                                        <CardTitle>{service.name}</CardTitle>
+                                        <CardDescription>
+                                            Service
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-sm text-muted-foreground">
                                             {service.description ||
                                                 'No description.'}
                                         </p>
-                                    </div>
-                                ))}
-                            </CardContent>
-                        </Card>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                            {services.length === 0 && (
+                                <p className="text-sm text-muted-foreground">
+                                    No services yet.
+                                </p>
+                            )}
+                        </div>
+                    )}
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Businesses</CardTitle>
-                                <CardDescription>
-                                    Local businesses and shops.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm">
-                                {businesses.length === 0 && (
-                                    <p className="text-slate-500">
-                                        No businesses yet.
-                                    </p>
-                                )}
-                                {businesses.map((business) => (
-                                    <div
-                                        key={business.id}
-                                        className="space-y-1"
-                                    >
-                                        <div className="font-medium">
-                                            {business.name}
-                                        </div>
-                                        <p className="text-slate-600">
+                    {activeTab === 'businesses' && (
+                        <div className="grid gap-4 md:grid-cols-2">
+                            {businesses.map((business) => (
+                                <Card key={business.id}>
+                                    <CardHeader>
+                                        <CardTitle>{business.name}</CardTitle>
+                                        <CardDescription>
+                                            Business
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-sm text-muted-foreground">
                                             {business.description ||
                                                 'No description.'}
                                         </p>
-                                    </div>
-                                ))}
-                            </CardContent>
-                        </Card>
-                    </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                            {businesses.length === 0 && (
+                                <p className="text-sm text-muted-foreground">
+                                    No businesses yet.
+                                </p>
+                            )}
+                        </div>
+                    )}
                 </main>
             </div>
         </>

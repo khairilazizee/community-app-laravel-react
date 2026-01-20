@@ -2,6 +2,10 @@
 
 namespace App\Actions\Fortify;
 
+use App\CommunityMemberRole;
+use App\CommunityMemberStatus;
+use App\Models\CommunitiesModel;
+use App\Models\CommunityMembersModel;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -28,12 +32,34 @@ class CreateNewUser implements CreatesNewUsers
                 Rule::unique(User::class),
             ],
             'password' => $this->passwordRules(),
+            'community' => ['nullable', 'string', 'max:255'],
         ])->validate();
 
-        return User::create([
+        $user = User::create([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => $input['password'],
         ]);
+
+        if (!empty($input['community'])) {
+            $community = CommunitiesModel::where('slug', $input['community'])
+                ->orWhere('id', $input['community'])
+                ->first();
+
+            if ($community) {
+                CommunityMembersModel::updateOrCreate(
+                    [
+                        'community_id' => $community->id,
+                        'user_id' => $user->id,
+                    ],
+                    [
+                        'role' => CommunityMemberRole::Member,
+                        'status' => CommunityMemberStatus::Pending,
+                    ]
+                );
+            }
+        }
+
+        return $user;
     }
 }

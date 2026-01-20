@@ -11,10 +11,51 @@ use App\Models\ServicesModel;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class CommunityServicesController extends Controller
 {
     use CommunityAccess;
+
+    public function index(int $communityId)
+    {
+        $community = CommunitiesModel::with(['members.user'])->findOrFail($communityId);
+        $this->requireMember($community);
+
+        return Inertia::render('communities/services/index', [
+            'community' => $community,
+            'services' => $community->services()->latest()->get(),
+            'members' => $community->members,
+        ]);
+    }
+
+    public function create(int $communityId)
+    {
+        $community = CommunitiesModel::with(['members.user'])->findOrFail($communityId);
+        $this->requireAdmin($community);
+
+        return Inertia::render('communities/services/create', [
+            'community' => $community,
+            'members' => $community->members,
+        ]);
+    }
+
+    public function edit(int $communityId, int $serviceId)
+    {
+        $community = CommunitiesModel::with(['members.user'])->findOrFail($communityId);
+        $member = $this->requireMember($community);
+
+        $service = ServicesModel::where('community_id', $community->id)->findOrFail($serviceId);
+        if ($member->role !== CommunityMemberRole::Admin && $service->owner_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        return Inertia::render('communities/services/edit', [
+            'community' => $community,
+            'service' => $service,
+            'members' => $community->members,
+        ]);
+    }
 
     public function store(Request $request, int $communityId)
     {
@@ -128,17 +169,23 @@ class CommunityServicesController extends Controller
         }
 
         $owner = User::findOrFail($ownerId);
+        $member = CommunityMembersModel::where('community_id', $community->id)
+            ->where('user_id', $owner->id)
+            ->first();
 
-        CommunityMembersModel::updateOrCreate(
-            [
+        if ($member) {
+            if ($member->status !== CommunityMemberStatus::Active) {
+                $member->status = CommunityMemberStatus::Active;
+                $member->save();
+            }
+        } else {
+            CommunityMembersModel::create([
                 'community_id' => $community->id,
                 'user_id' => $owner->id,
-            ],
-            [
                 'role' => CommunityMemberRole::Owner,
                 'status' => CommunityMemberStatus::Active,
-            ]
-        );
+            ]);
+        }
 
         return $owner->id;
     }

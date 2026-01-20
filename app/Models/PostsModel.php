@@ -13,6 +13,7 @@ class PostsModel extends Model
         'user_id',
         'business_id',
         'title',
+        'slug',
         'content',
         'type',
         'published_at',

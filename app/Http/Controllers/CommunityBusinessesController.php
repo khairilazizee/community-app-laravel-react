@@ -11,10 +11,51 @@ use App\Models\CommunityMembersModel;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class CommunityBusinessesController extends Controller
 {
     use CommunityAccess;
+
+    public function index(int $communityId)
+    {
+        $community = CommunitiesModel::with(['members.user'])->findOrFail($communityId);
+        $this->requireMember($community);
+
+        return Inertia::render('communities/businesses/index', [
+            'community' => $community,
+            'businesses' => $community->businesses()->latest()->get(),
+            'members' => $community->members,
+        ]);
+    }
+
+    public function create(int $communityId)
+    {
+        $community = CommunitiesModel::with(['members.user'])->findOrFail($communityId);
+        $this->requireAdmin($community);
+
+        return Inertia::render('communities/businesses/create', [
+            'community' => $community,
+            'members' => $community->members,
+        ]);
+    }
+
+    public function edit(int $communityId, int $businessId)
+    {
+        $community = CommunitiesModel::with(['members.user'])->findOrFail($communityId);
+        $member = $this->requireMember($community);
+
+        $business = BusinessesModel::where('community_id', $community->id)->findOrFail($businessId);
+        if ($member->role !== CommunityMemberRole::Admin && $business->owner_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        return Inertia::render('communities/businesses/edit', [
+            'community' => $community,
+            'business' => $business,
+            'members' => $community->members,
+        ]);
+    }
 
     public function store(Request $request, int $communityId)
     {
@@ -38,7 +79,8 @@ class CommunityBusinessesController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
-        $ownerId = $this->ensureOwnerMember($community, $data['owner_id'] ?? null);
+        $ownerId = $data['owner_id'] ?? Auth::id();
+        $ownerId = $this->ensureOwnerMember($community, $ownerId);
 
         BusinessesModel::create([
             'community_id' => $community->id,
@@ -132,17 +174,23 @@ class CommunityBusinessesController extends Controller
         }
 
         $owner = User::findOrFail($ownerId);
+        $member = CommunityMembersModel::where('community_id', $community->id)
+            ->where('user_id', $owner->id)
+            ->first();
 
-        CommunityMembersModel::updateOrCreate(
-            [
+        if ($member) {
+            if ($member->status !== CommunityMemberStatus::Active) {
+                $member->status = CommunityMemberStatus::Active;
+                $member->save();
+            }
+        } else {
+            CommunityMembersModel::create([
                 'community_id' => $community->id,
                 'user_id' => $owner->id,
-            ],
-            [
                 'role' => CommunityMemberRole::Owner,
                 'status' => CommunityMemberStatus::Active,
-            ]
-        );
+            ]);
+        }
 
         return $owner->id;
     }

@@ -2,7 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\CommunityMemberRole;
+use App\Models\BusinessesModel;
+use App\Models\CommentsModel;
+use App\Models\CommunitiesModel;
+use App\Models\CommunityMembersModel;
+use App\Models\NewsModel;
+use App\Models\PostsModel;
+use App\Models\ServicesModel;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -10,8 +17,34 @@ class dashboardController extends Controller
 {
     public function index()
     {
+        $communityIds = CommunitiesModel::whereHas('members', function ($query) {
+            $query->where('user_id', Auth::id())
+                ->where('role', CommunityMemberRole::Admin);
+        })->pluck('id');
+
+        $businessesCount = BusinessesModel::whereIn('community_id', $communityIds)->count();
+        $postsCount = PostsModel::whereIn('community_id', $communityIds)->count();
+        $newsCount = NewsModel::whereIn('community_id', $communityIds)->count();
+        $servicesCount = ServicesModel::whereIn('community_id', $communityIds)->count();
+        $membersCount = CommunityMembersModel::whereIn('community_id', $communityIds)->count();
+        $commentsCount = CommentsModel::whereHasMorph(
+            'commentable',
+            [PostsModel::class, NewsModel::class, BusinessesModel::class, ServicesModel::class],
+            function ($query) use ($communityIds) {
+                $query->whereIn('community_id', $communityIds);
+            }
+        )->count();
+
         return Inertia::render('dashboard', [
-            'user' => Auth::user()
+            'user' => Auth::user(),
+            'stats' => [
+                'businesses' => $businessesCount,
+                'posts' => $postsCount,
+                'news' => $newsCount,
+                'services' => $servicesCount,
+                'members' => $membersCount,
+                'comments' => $commentsCount,
+            ],
         ]);
     }
 }

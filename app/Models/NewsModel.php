@@ -12,6 +12,7 @@ class NewsModel extends Model
         'community_id',
         'user_id',
         'title',
+        'slug',
         'content',
         'published_at',
         'is_active',
