@@ -38,4 +38,9 @@ class PostsModel extends Model
     {
         return $this->belongsTo(BusinessesModel::class);
     }
+
+    public function comments()
+    {
+        return $this->morphMany(CommentsModel::class, 'commentable');
+    }
 }

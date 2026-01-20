@@ -30,4 +30,24 @@ class CommunitiesModel extends Model
     {
         return $this->hasMany(CommunityMembersModel::class, 'community_id', 'id');
     }
+
+    public function news()
+    {
+        return $this->hasMany(NewsModel::class, 'community_id', 'id');
+    }
+
+    public function services()
+    {
+        return $this->hasMany(ServicesModel::class, 'community_id', 'id');
+    }
+
+    public function businesses()
+    {
+        return $this->hasMany(BusinessesModel::class, 'community_id', 'id');
+    }
+
+    public function posts()
+    {
+        return $this->hasMany(PostsModel::class, 'community_id', 'id');
+    }
 }

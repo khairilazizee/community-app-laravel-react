@@ -4,14 +4,20 @@ namespace App\Http\Controllers;
 
 use App\CommunityMemberRole;
 use App\CommunityMemberStatus;
+use App\Http\Controllers\Concerns\CommunityAccess;
 use App\Models\CommunitiesModel;
 use App\Models\CommunityMembersModel;
+use App\Models\NewsModel;
+use App\Models\PostsModel;
+use App\Models\ServicesModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class communitiesController extends Controller
 {
+    use CommunityAccess;
+
     public function index()
     {
         return Inertia::render('communities', [
@@ -23,6 +29,35 @@ class communitiesController extends Controller
     public function create()
     {
         return Inertia::render('communities/create');
+    }
+
+    public function show(string $slug)
+    {
+        $community = CommunitiesModel::where('slug', $slug)->firstOrFail();
+
+        $member = null;
+        if (Auth::check()) {
+            $member = $community->members()
+                ->where('user_id', Auth::id())
+                ->where('status', CommunityMemberStatus::Active)
+                ->first();
+        }
+
+        if ($community->is_private) {
+            if (!$member) {
+                abort(404);
+            }
+        }
+
+        return Inertia::render('communities/show', [
+            'community' => $community,
+            'posts' => PostsModel::where('community_id', $community->id)->latest()->get(),
+            'news' => NewsModel::where('community_id', $community->id)->latest()->get(),
+            'services' => ServicesModel::where('community_id', $community->id)->latest()->get(),
+            'businesses' => $community->businesses()->latest()->get(),
+            'is_member' => (bool) $member,
+            'member_role' => $member?->role?->value,
+        ]);
     }
 
     public function store(Request $request)
@@ -69,9 +104,10 @@ class communitiesController extends Controller
     public function edit(int $id)
     {
         $community = CommunitiesModel::with('members')->findOrFail($id);
+        $this->requireAdmin($community);
 
         return Inertia::render('communities/edit', [
-            'community' => $community
+            'community' => $community->load(['members.user', 'businesses', 'posts', 'news', 'services'])
         ]);
     }
 
@@ -87,6 +123,7 @@ class communitiesController extends Controller
         ]);
 
         $community = CommunitiesModel::findOrFail($id);
+        $this->requireAdmin($community);
 
         $community->fill([
             'name' => $data['community_name'],
@@ -106,6 +143,7 @@ class communitiesController extends Controller
     public function delete(int $id)
     {
         $community = CommunitiesModel::with('members')->findOrFail($id);
+        $this->requireAdmin($community);
 
         // if ($community->members->count() > 1) {
         //     return redirect()->route('communities.index')->with('status', 'Community cannot be deleted because it has members.');

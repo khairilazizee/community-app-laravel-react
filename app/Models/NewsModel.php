@@ -4,26 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class BusinessesModel extends Model
+class NewsModel extends Model
 {
-    protected $table = 'businesses';
+    protected $table = 'news';
 
     protected $fillable = [
         'community_id',
-        'owner_id',
-        'name',
-        'type',
-        'description',
-        'address',
-        'city',
-        'state',
-        'zip',
-        'country',
-        'phone',
-        'website',
-        'email',
-        'is_private',
+        'user_id',
+        'title',
+        'content',
+        'published_at',
         'is_active',
+    ];
+
+    protected $casts = [
+        'published_at' => 'datetime',
+        'is_active' => 'boolean',
     ];
 
     public function community()
@@ -31,14 +27,9 @@ class BusinessesModel extends Model
         return $this->belongsTo(CommunitiesModel::class);
     }
 
-    public function owner()
+    public function user()
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function post()
-    {
-        return $this->hasMany(PostsModel::class);
     }
 
     public function comments()
