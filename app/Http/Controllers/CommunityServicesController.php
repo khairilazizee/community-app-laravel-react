@@ -7,7 +7,9 @@ use App\CommunityMemberStatus;
 use App\Http\Controllers\Concerns\CommunityAccess;
 use App\Models\CommunitiesModel;
 use App\Models\CommunityMembersModel;
+use App\Models\ItemCategory;
 use App\Models\ServicesModel;
+use App\Models\ServiceOffering;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -45,7 +47,9 @@ class CommunityServicesController extends Controller
         $community = CommunitiesModel::with(['members.user'])->findOrFail($communityId);
         $member = $this->requireMember($community);
 
-        $service = ServicesModel::where('community_id', $community->id)->findOrFail($serviceId);
+        $service = ServicesModel::where('community_id', $community->id)
+            ->with(['offerings.category'])
+            ->findOrFail($serviceId);
         if ($member->role !== CommunityMemberRole::Admin && $service->owner_id !== Auth::id()) {
             abort(403, 'Unauthorized');
         }
@@ -60,6 +64,37 @@ class CommunityServicesController extends Controller
             'members' => $community->members,
             'can_edit_fields' => $isOwner || ($isAdmin && !$hasOwner),
             'can_change_owner' => $isAdmin,
+        ]);
+    }
+
+    public function show(string $communitySlug, int $serviceId)
+    {
+        $community = CommunitiesModel::where('slug', $communitySlug)->firstOrFail();
+        $member = null;
+
+        if (Auth::check()) {
+            $member = $community->members()
+                ->where('user_id', Auth::id())
+                ->where('status', CommunityMemberStatus::Active)
+                ->first();
+        }
+
+        if ($community->is_private && !$member) {
+            abort(404);
+        }
+
+        $service = ServicesModel::where('community_id', $community->id)
+            ->with(['offerings.category'])
+            ->findOrFail($serviceId);
+
+        if ($service->is_private || !$service->is_active) {
+            abort(404);
+        }
+
+        return Inertia::render('communities/services/show', [
+            'community' => $community,
+            'service' => $service,
+            'is_member' => (bool) $member,
         ]);
     }
 
@@ -82,11 +117,18 @@ class CommunityServicesController extends Controller
             'owner_id' => 'nullable|integer|exists:users,id',
             'is_private' => 'nullable|boolean',
             'is_active' => 'nullable|boolean',
+            'service_offerings' => 'nullable|array',
+            'service_offerings.*.name' => 'nullable|string|max:255',
+            'service_offerings.*.price' => 'nullable|numeric|min:0',
+            'service_offerings.*.duration_minutes' => 'nullable|integer|min:0',
+            'service_offerings.*.category' => 'nullable|string|max:255',
+            'service_offerings.*.description' => 'nullable|string',
+            'service_offerings.*.sort_order' => 'nullable|integer|min:0',
         ]);
 
         $ownerId = $this->ensureOwnerMember($community, $data['owner_id'] ?? null);
 
-        ServicesModel::create([
+        $service = ServicesModel::create([
             'community_id' => $community->id,
             'owner_id' => $ownerId,
             'name' => $data['name'],
@@ -102,6 +144,12 @@ class CommunityServicesController extends Controller
             'is_private' => $data['is_private'] ?? false,
             'is_active' => $data['is_active'] ?? true,
         ]);
+
+        $this->syncServiceOfferings(
+            $service,
+            $community,
+            $data['service_offerings'] ?? null,
+        );
 
         return back()->with('status', 'Service created successfully.');
     }
@@ -141,6 +189,13 @@ class CommunityServicesController extends Controller
                 'owner_id' => 'nullable|integer|exists:users,id',
                 'is_private' => 'nullable|boolean',
                 'is_active' => 'nullable|boolean',
+                'service_offerings' => 'nullable|array',
+                'service_offerings.*.name' => 'nullable|string|max:255',
+                'service_offerings.*.price' => 'nullable|numeric|min:0',
+                'service_offerings.*.duration_minutes' => 'nullable|integer|min:0',
+                'service_offerings.*.category' => 'nullable|string|max:255',
+                'service_offerings.*.description' => 'nullable|string',
+                'service_offerings.*.sort_order' => 'nullable|integer|min:0',
             ]);
         }
 
@@ -169,6 +224,12 @@ class CommunityServicesController extends Controller
             $service->owner_id = $ownerId;
         }
         $service->save();
+
+        $this->syncServiceOfferings(
+            $service,
+            $community,
+            $data['service_offerings'] ?? null,
+        );
 
         return back()->with('status', 'Service updated successfully.');
     }
@@ -217,5 +278,57 @@ class CommunityServicesController extends Controller
         }
 
         return $owner->id;
+    }
+
+    private function syncServiceOfferings(
+        ServicesModel $service,
+        CommunitiesModel $community,
+        ?array $offerings,
+    ): void {
+        if (is_null($offerings)) {
+            return;
+        }
+
+        $service->offerings()->delete();
+
+        $filtered = array_values(array_filter($offerings, function ($item) {
+            return isset($item['name']) && trim($item['name']) !== '';
+        }));
+
+        foreach ($filtered as $item) {
+            $categoryId = $this->resolveCategoryId(
+                $community,
+                $item['category'] ?? null,
+                'service',
+            );
+
+            $service->offerings()->create([
+                'category_id' => $categoryId,
+                'name' => $item['name'],
+                'price' => $item['price'] ?? null,
+                'duration_minutes' => $item['duration_minutes'] ?? null,
+                'description' => $item['description'] ?? null,
+                'sort_order' => $item['sort_order'] ?? 0,
+            ]);
+        }
+    }
+
+    private function resolveCategoryId(
+        CommunitiesModel $community,
+        ?string $name,
+        string $type,
+    ): ?int {
+        $trimmed = $name ? trim($name) : '';
+        if ($trimmed === '') {
+            return null;
+        }
+
+        $category = ItemCategory::firstOrCreate([
+            'community_id' => $community->id,
+            'type' => $type,
+            'name' => $trimmed,
+        ]);
+
+        return $category->id;
     }
 }

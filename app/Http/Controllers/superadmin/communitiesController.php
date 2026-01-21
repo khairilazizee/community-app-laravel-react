@@ -12,7 +12,10 @@ class communitiesController extends Controller
     public function index()
     {
         return Inertia::render('superadmin/communities', [
-            'communities' => CommunitiesModel::all()
+            'activeCommunities' => CommunitiesModel::withCount('members')->get(),
+            'deletedCommunities' => CommunitiesModel::onlyTrashed()
+                ->withCount('members')
+                ->get(),
         ]);
     }
 }

@@ -21,6 +21,8 @@ type NewsItem = {
     id: number;
     title: string;
     content: string;
+    approval_status: string;
+    tags?: { name: string }[];
 };
 
 type Props = {
@@ -77,6 +79,23 @@ export default function NewsShow({ community, news }: Props) {
                         <CardHeader>
                             <CardTitle>{news.title}</CardTitle>
                             <CardDescription>News</CardDescription>
+                            {news.tags && news.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                                    {news.tags.map((tag) => (
+                                        <span
+                                            key={tag.name}
+                                            className="rounded-full border border-border px-2 py-0.5"
+                                        >
+                                            {tag.name}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                            {news.approval_status !== 'approved' && (
+                                <div className="text-xs text-muted-foreground">
+                                    This news item is awaiting admin approval.
+                                </div>
+                            )}
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <p className="text-muted-foreground">

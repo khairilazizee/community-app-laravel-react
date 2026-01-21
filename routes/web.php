@@ -85,5 +85,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('communities/{slug}', [communitiesController::class, 'show'])->name('communities.show');
 Route::get('communities/{communitySlug}/posts/{slug}', [CommunityPostsController::class, 'show'])->name('communities.posts.show');
 Route::get('communities/{communitySlug}/news/{slug}', [CommunityNewsController::class, 'show'])->name('communities.news.show');
+Route::get('communities/{communitySlug}/businesses/{businessId}', [CommunityBusinessesController::class, 'show'])->name('communities.businesses.show');
+Route::get('communities/{communitySlug}/services/{serviceId}', [CommunityServicesController::class, 'show'])->name('communities.services.show');
 
 require __DIR__ . '/settings.php';

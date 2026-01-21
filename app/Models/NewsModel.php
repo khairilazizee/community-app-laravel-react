@@ -16,11 +16,15 @@ class NewsModel extends Model
         'content',
         'published_at',
         'is_active',
+        'approval_status',
+        'approved_by',
+        'approved_at',
     ];
 
     protected $casts = [
         'published_at' => 'datetime',
         'is_active' => 'boolean',
+        'approved_at' => 'datetime',
     ];
 
     public function community()
@@ -36,5 +40,10 @@ class NewsModel extends Model
     public function comments()
     {
         return $this->morphMany(CommentsModel::class, 'commentable');
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(NewsTag::class, 'news_tag', 'news_id', 'tag_id');
     }
 }

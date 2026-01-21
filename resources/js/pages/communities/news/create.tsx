@@ -26,6 +26,7 @@ export default function NewsCreate({ community }: Props) {
     const { data, setData, post, processing } = useForm({
         title: '',
         content: '',
+        tags: '',
     });
 
     const submit = (e: React.FormEvent) => {
@@ -64,6 +65,19 @@ export default function NewsCreate({ community }: Props) {
                                     }
                                 />
                             </div>
+                            <div>
+                                <Label>Tags (comma-separated)</Label>
+                                <Input
+                                    value={data.tags}
+                                    onChange={(e) =>
+                                        setData('tags', e.target.value)
+                                    }
+                                />
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                                News needs admin approval before it appears
+                                publicly.
+                            </p>
                             <div className="flex gap-2">
                                 <Link href={`/communities/${community.id}/edit`}>
                                     <Button variant="outline" type="button">

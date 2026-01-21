@@ -10,6 +10,7 @@ use App\Models\CommunityMembersModel;
 use App\Models\NewsModel;
 use App\Models\PostsModel;
 use App\Models\ServicesModel;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -17,6 +18,7 @@ class dashboardController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
         $communityIds = CommunitiesModel::whereHas('members', function ($query) {
             $query->where('user_id', Auth::id())
                 ->where('role', CommunityMemberRole::Admin);
@@ -35,16 +37,23 @@ class dashboardController extends Controller
             }
         )->count();
 
+        $stats = [
+            'businesses' => $businessesCount,
+            'posts' => $postsCount,
+            'news' => $newsCount,
+            'services' => $servicesCount,
+            'members' => $membersCount,
+            'comments' => $commentsCount,
+        ];
+
+        if ($user && $user->isSuperAdmin()) {
+            $stats['users'] = User::count();
+            $stats['communities'] = CommunitiesModel::count();
+        }
+
         return Inertia::render('dashboard', [
-            'user' => Auth::user(),
-            'stats' => [
-                'businesses' => $businessesCount,
-                'posts' => $postsCount,
-                'news' => $newsCount,
-                'services' => $servicesCount,
-                'members' => $membersCount,
-                'comments' => $commentsCount,
-            ],
+            'user' => $user,
+            'stats' => $stats,
         ]);
     }
 }

@@ -38,11 +38,26 @@ export default function BusinessesCreate({ community, members }: Props) {
         members.find((member) => member.role === 'admin')?.user.id ??
         members[0]?.user.id ??
         null;
+    const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const { data, setData, post, processing } = useForm({
         name: '',
         type: 'business',
         description: '',
+        address: '',
+        city: '',
+        state: '',
+        zip: '',
+        country: '',
         owner_id: defaultOwnerId as number | null,
+        business_items: [
+            { name: '', price: '', category: '', description: '', sort_order: 0 },
+        ],
+        business_hours: dayLabels.map((_, index) => ({
+            day_of_week: index,
+            open_time: '',
+            close_time: '',
+            is_closed: false,
+        })),
     });
 
     const toNumberOrNull = (value: string | number | null) => {
@@ -57,6 +72,38 @@ export default function BusinessesCreate({ community, members }: Props) {
             onSuccess: () => toast.success('Business created.'),
             onError: () => toast.error('Something went wrong.'),
         });
+    };
+
+    const updateItem = (
+        index: number,
+        key: 'name' | 'price' | 'category' | 'description' | 'sort_order',
+        value: string | number,
+    ) => {
+        const nextItems = [...data.business_items];
+        nextItems[index] = { ...nextItems[index], [key]: value };
+        setData('business_items', nextItems);
+    };
+
+    const addItem = () => {
+        setData('business_items', [
+            ...data.business_items,
+            { name: '', price: '', category: '', description: '', sort_order: 0 },
+        ]);
+    };
+
+    const removeItem = (index: number) => {
+        const nextItems = data.business_items.filter((_, i) => i !== index);
+        setData('business_items', nextItems.length ? nextItems : []);
+    };
+
+    const updateHour = (
+        index: number,
+        key: 'open_time' | 'close_time' | 'is_closed',
+        value: string | boolean,
+    ) => {
+        const nextHours = [...data.business_hours];
+        nextHours[index] = { ...nextHours[index], [key]: value };
+        setData('business_hours', nextHours);
     };
 
     return (
@@ -95,6 +142,216 @@ export default function BusinessesCreate({ community, members }: Props) {
                                         setData('description', e.target.value)
                                     }
                                 />
+                            </div>
+                            <div className="grid gap-3 md:grid-cols-2">
+                                <div>
+                                    <Label>Address</Label>
+                                    <Input
+                                        value={data.address}
+                                        onChange={(e) =>
+                                            setData('address', e.target.value)
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <Label>City</Label>
+                                    <Input
+                                        value={data.city}
+                                        onChange={(e) =>
+                                            setData('city', e.target.value)
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <Label>State</Label>
+                                    <Input
+                                        value={data.state}
+                                        onChange={(e) =>
+                                            setData('state', e.target.value)
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Zip</Label>
+                                    <Input
+                                        value={data.zip}
+                                        onChange={(e) =>
+                                            setData('zip', e.target.value)
+                                        }
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <Label>Country</Label>
+                                    <Input
+                                        value={data.country}
+                                        onChange={(e) =>
+                                            setData('country', e.target.value)
+                                        }
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <Label>Business Hours</Label>
+                                <div className="mt-2 space-y-2">
+                                    {data.business_hours.map((hour, index) => (
+                                        <div
+                                            key={hour.day_of_week}
+                                            className="flex flex-wrap items-center gap-2"
+                                        >
+                                            <div className="w-12 text-sm font-medium">
+                                                {dayLabels[index]}
+                                            </div>
+                                            <label className="flex items-center gap-2 text-sm">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={hour.is_closed}
+                                                    onChange={(e) =>
+                                                        updateHour(
+                                                            index,
+                                                            'is_closed',
+                                                            e.target.checked,
+                                                        )
+                                                    }
+                                                />
+                                                Closed
+                                            </label>
+                                            <Input
+                                                type="time"
+                                                value={hour.open_time}
+                                                onChange={(e) =>
+                                                    updateHour(
+                                                        index,
+                                                        'open_time',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                disabled={hour.is_closed}
+                                                className="w-36"
+                                            />
+                                            <span className="text-sm text-muted-foreground">
+                                                to
+                                            </span>
+                                            <Input
+                                                type="time"
+                                                value={hour.close_time}
+                                                onChange={(e) =>
+                                                    updateHour(
+                                                        index,
+                                                        'close_time',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                disabled={hour.is_closed}
+                                                className="w-36"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <div className="flex items-center justify-between">
+                                    <Label>Items / Products</Label>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={addItem}
+                                    >
+                                        Add Item
+                                    </Button>
+                                </div>
+                                <div className="mt-2 space-y-3">
+                                    {data.business_items.map((item, index) => (
+                                        <div
+                                            key={index}
+                                            className="rounded-md border border-border p-3"
+                                        >
+                                            <div className="grid gap-3 md:grid-cols-2">
+                                                <div>
+                                                    <Label>Name</Label>
+                                                    <Input
+                                                        value={item.name}
+                                                        onChange={(e) =>
+                                                            updateItem(
+                                                                index,
+                                                                'name',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label>Category</Label>
+                                                    <Input
+                                                        value={item.category}
+                                                        onChange={(e) =>
+                                                            updateItem(
+                                                                index,
+                                                                'category',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label>Price</Label>
+                                                    <Input
+                                                        type="number"
+                                                        step="0.01"
+                                                        value={item.price}
+                                                        onChange={(e) =>
+                                                            updateItem(
+                                                                index,
+                                                                'price',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label>Sort Order</Label>
+                                                    <Input
+                                                        type="number"
+                                                        value={item.sort_order}
+                                                        onChange={(e) =>
+                                                            updateItem(
+                                                                index,
+                                                                'sort_order',
+                                                                Number(
+                                                                    e.target
+                                                                        .value,
+                                                                ),
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="md:col-span-2">
+                                                    <Label>Description</Label>
+                                                    <Input
+                                                        value={item.description}
+                                                        onChange={(e) =>
+                                                            updateItem(
+                                                                index,
+                                                                'description',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="mt-3 flex justify-end">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    onClick={() =>
+                                                        removeItem(index)
+                                                    }
+                                                >
+                                                    Remove
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                             <div>
                                 <Label>Owner</Label>

@@ -18,11 +18,15 @@ class PostsModel extends Model
         'type',
         'published_at',
         'is_active',
+        'approval_status',
+        'approved_by',
+        'approved_at',
     ];
 
     protected $casts = [
         'published_at' => 'datetime',
         'is_active' => 'boolean',
+        'approved_at' => 'datetime',
     ];
 
     public function community()
@@ -43,5 +47,10 @@ class PostsModel extends Model
     public function comments()
     {
         return $this->morphMany(CommentsModel::class, 'commentable');
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(PostTag::class, 'post_tag', 'post_id', 'tag_id');
     }
 }

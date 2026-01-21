@@ -41,7 +41,22 @@ export default function ServicesCreate({ community, members }: Props) {
     const { data, setData, post, processing } = useForm({
         name: '',
         description: '',
+        address: '',
+        city: '',
+        state: '',
+        zip: '',
+        country: '',
         owner_id: defaultOwnerId as number | null,
+        service_offerings: [
+            {
+                name: '',
+                price: '',
+                duration_minutes: '',
+                category: '',
+                description: '',
+                sort_order: 0,
+            },
+        ],
     });
 
     const toNumberOrNull = (value: string | number | null) => {
@@ -56,6 +71,43 @@ export default function ServicesCreate({ community, members }: Props) {
             onSuccess: () => toast.success('Service created.'),
             onError: () => toast.error('Something went wrong.'),
         });
+    };
+
+    const updateOffering = (
+        index: number,
+        key:
+            | 'name'
+            | 'price'
+            | 'duration_minutes'
+            | 'category'
+            | 'description'
+            | 'sort_order',
+        value: string | number,
+    ) => {
+        const nextOfferings = [...data.service_offerings];
+        nextOfferings[index] = { ...nextOfferings[index], [key]: value };
+        setData('service_offerings', nextOfferings);
+    };
+
+    const addOffering = () => {
+        setData('service_offerings', [
+            ...data.service_offerings,
+            {
+                name: '',
+                price: '',
+                duration_minutes: '',
+                category: '',
+                description: '',
+                sort_order: 0,
+            },
+        ]);
+    };
+
+    const removeOffering = (index: number) => {
+        const nextOfferings = data.service_offerings.filter(
+            (_, i) => i !== index,
+        );
+        setData('service_offerings', nextOfferings.length ? nextOfferings : []);
     };
 
     return (
@@ -85,6 +137,199 @@ export default function ServicesCreate({ community, members }: Props) {
                                         setData('description', e.target.value)
                                     }
                                 />
+                            </div>
+                            <div className="grid gap-3 md:grid-cols-2">
+                                <div>
+                                    <Label>Address</Label>
+                                    <Input
+                                        value={data.address}
+                                        onChange={(e) =>
+                                            setData('address', e.target.value)
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <Label>City</Label>
+                                    <Input
+                                        value={data.city}
+                                        onChange={(e) =>
+                                            setData('city', e.target.value)
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <Label>State</Label>
+                                    <Input
+                                        value={data.state}
+                                        onChange={(e) =>
+                                            setData('state', e.target.value)
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Zip</Label>
+                                    <Input
+                                        value={data.zip}
+                                        onChange={(e) =>
+                                            setData('zip', e.target.value)
+                                        }
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <Label>Country</Label>
+                                    <Input
+                                        value={data.country}
+                                        onChange={(e) =>
+                                            setData('country', e.target.value)
+                                        }
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <div className="flex items-center justify-between">
+                                    <Label>Service Offerings</Label>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={addOffering}
+                                    >
+                                        Add Offering
+                                    </Button>
+                                </div>
+                                <div className="mt-2 space-y-3">
+                                    {data.service_offerings.map(
+                                        (offering, index) => (
+                                            <div
+                                                key={index}
+                                                className="rounded-md border border-border p-3"
+                                            >
+                                                <div className="grid gap-3 md:grid-cols-2">
+                                                    <div>
+                                                        <Label>Name</Label>
+                                                        <Input
+                                                            value={
+                                                                offering.name
+                                                            }
+                                                            onChange={(e) =>
+                                                                updateOffering(
+                                                                    index,
+                                                                    'name',
+                                                                    e.target
+                                                                        .value,
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Label>Category</Label>
+                                                        <Input
+                                                            value={
+                                                                offering.category
+                                                            }
+                                                            onChange={(e) =>
+                                                                updateOffering(
+                                                                    index,
+                                                                    'category',
+                                                                    e.target
+                                                                        .value,
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Label>Price</Label>
+                                                        <Input
+                                                            type="number"
+                                                            step="0.01"
+                                                            value={
+                                                                offering.price
+                                                            }
+                                                            onChange={(e) =>
+                                                                updateOffering(
+                                                                    index,
+                                                                    'price',
+                                                                    e.target
+                                                                        .value,
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Label>
+                                                            Duration (minutes)
+                                                        </Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={
+                                                                offering.duration_minutes
+                                                            }
+                                                            onChange={(e) =>
+                                                                updateOffering(
+                                                                    index,
+                                                                    'duration_minutes',
+                                                                    e.target
+                                                                        .value,
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Label>
+                                                            Sort Order
+                                                        </Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={
+                                                                offering.sort_order
+                                                            }
+                                                            onChange={(e) =>
+                                                                updateOffering(
+                                                                    index,
+                                                                    'sort_order',
+                                                                    Number(
+                                                                        e.target
+                                                                            .value,
+                                                                    ),
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div className="md:col-span-2">
+                                                        <Label>
+                                                            Description
+                                                        </Label>
+                                                        <Input
+                                                            value={
+                                                                offering.description
+                                                            }
+                                                            onChange={(e) =>
+                                                                updateOffering(
+                                                                    index,
+                                                                    'description',
+                                                                    e.target
+                                                                        .value,
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="mt-3 flex justify-end">
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        onClick={() =>
+                                                            removeOffering(
+                                                                index,
+                                                            )
+                                                        }
+                                                    >
+                                                        Remove
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ),
+                                    )}
+                                </div>
                             </div>
                             <div>
                                 <Label>Owner</Label>

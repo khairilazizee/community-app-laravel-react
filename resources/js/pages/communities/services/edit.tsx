@@ -16,7 +16,23 @@ type Service = {
     id: number;
     name: string;
     description: string | null;
+    address: string | null;
+    city: string | null;
+    state: string | null;
+    zip: string | null;
+    country: string | null;
     owner_id: number | null;
+    offerings: {
+        id: number;
+        name: string;
+        price: number | null;
+        duration_minutes: number | null;
+        description: string | null;
+        sort_order: number;
+        category: {
+            name: string;
+        } | null;
+    }[];
 };
 
 type Member = {
@@ -57,7 +73,20 @@ export default function ServicesEdit({
     const { data, setData, put, processing } = useForm({
         name: service.name,
         description: service.description ?? '',
+        address: service.address ?? '',
+        city: service.city ?? '',
+        state: service.state ?? '',
+        zip: service.zip ?? '',
+        country: service.country ?? '',
         owner_id: service.owner_id ?? defaultOwnerId,
+        service_offerings: service.offerings?.map((offering) => ({
+            name: offering.name,
+            price: offering.price ?? '',
+            duration_minutes: offering.duration_minutes ?? '',
+            category: offering.category?.name ?? '',
+            description: offering.description ?? '',
+            sort_order: offering.sort_order ?? 0,
+        })) ?? [],
     });
 
     const toNumberOrNull = (value: string | number | null) => {
@@ -72,6 +101,43 @@ export default function ServicesEdit({
             onSuccess: () => toast.success('Service updated.'),
             onError: () => toast.error('Something went wrong.'),
         });
+    };
+
+    const updateOffering = (
+        index: number,
+        key:
+            | 'name'
+            | 'price'
+            | 'duration_minutes'
+            | 'category'
+            | 'description'
+            | 'sort_order',
+        value: string | number,
+    ) => {
+        const nextOfferings = [...data.service_offerings];
+        nextOfferings[index] = { ...nextOfferings[index], [key]: value };
+        setData('service_offerings', nextOfferings);
+    };
+
+    const addOffering = () => {
+        setData('service_offerings', [
+            ...data.service_offerings,
+            {
+                name: '',
+                price: '',
+                duration_minutes: '',
+                category: '',
+                description: '',
+                sort_order: 0,
+            },
+        ]);
+    };
+
+    const removeOffering = (index: number) => {
+        const nextOfferings = data.service_offerings.filter(
+            (_, i) => i !== index,
+        );
+        setData('service_offerings', nextOfferings);
     };
 
     return (
@@ -103,6 +169,226 @@ export default function ServicesEdit({
                                     }
                                     disabled={!can_edit_fields}
                                 />
+                            </div>
+                            <div className="grid gap-3 md:grid-cols-2">
+                                <div>
+                                    <Label>Address</Label>
+                                    <Input
+                                        value={data.address}
+                                        onChange={(e) =>
+                                            setData('address', e.target.value)
+                                        }
+                                        disabled={!can_edit_fields}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>City</Label>
+                                    <Input
+                                        value={data.city}
+                                        onChange={(e) =>
+                                            setData('city', e.target.value)
+                                        }
+                                        disabled={!can_edit_fields}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>State</Label>
+                                    <Input
+                                        value={data.state}
+                                        onChange={(e) =>
+                                            setData('state', e.target.value)
+                                        }
+                                        disabled={!can_edit_fields}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Zip</Label>
+                                    <Input
+                                        value={data.zip}
+                                        onChange={(e) =>
+                                            setData('zip', e.target.value)
+                                        }
+                                        disabled={!can_edit_fields}
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <Label>Country</Label>
+                                    <Input
+                                        value={data.country}
+                                        onChange={(e) =>
+                                            setData('country', e.target.value)
+                                        }
+                                        disabled={!can_edit_fields}
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <div className="flex items-center justify-between">
+                                    <Label>Service Offerings</Label>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={addOffering}
+                                        disabled={!can_edit_fields}
+                                    >
+                                        Add Offering
+                                    </Button>
+                                </div>
+                                <div className="mt-2 space-y-3">
+                                    {data.service_offerings.map(
+                                        (offering, index) => (
+                                            <div
+                                                key={index}
+                                                className="rounded-md border border-border p-3"
+                                            >
+                                                <div className="grid gap-3 md:grid-cols-2">
+                                                    <div>
+                                                        <Label>Name</Label>
+                                                        <Input
+                                                            value={
+                                                                offering.name
+                                                            }
+                                                            onChange={(e) =>
+                                                                updateOffering(
+                                                                    index,
+                                                                    'name',
+                                                                    e.target
+                                                                        .value,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                !can_edit_fields
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Label>Category</Label>
+                                                        <Input
+                                                            value={
+                                                                offering.category
+                                                            }
+                                                            onChange={(e) =>
+                                                                updateOffering(
+                                                                    index,
+                                                                    'category',
+                                                                    e.target
+                                                                        .value,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                !can_edit_fields
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Label>Price</Label>
+                                                        <Input
+                                                            type="number"
+                                                            step="0.01"
+                                                            value={
+                                                                offering.price
+                                                            }
+                                                            onChange={(e) =>
+                                                                updateOffering(
+                                                                    index,
+                                                                    'price',
+                                                                    e.target
+                                                                        .value,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                !can_edit_fields
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Label>
+                                                            Duration (minutes)
+                                                        </Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={
+                                                                offering.duration_minutes
+                                                            }
+                                                            onChange={(e) =>
+                                                                updateOffering(
+                                                                    index,
+                                                                    'duration_minutes',
+                                                                    e.target
+                                                                        .value,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                !can_edit_fields
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <Label>
+                                                            Sort Order
+                                                        </Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={
+                                                                offering.sort_order
+                                                            }
+                                                            onChange={(e) =>
+                                                                updateOffering(
+                                                                    index,
+                                                                    'sort_order',
+                                                                    Number(
+                                                                        e.target
+                                                                            .value,
+                                                                    ),
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                !can_edit_fields
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div className="md:col-span-2">
+                                                        <Label>
+                                                            Description
+                                                        </Label>
+                                                        <Input
+                                                            value={
+                                                                offering.description
+                                                            }
+                                                            onChange={(e) =>
+                                                                updateOffering(
+                                                                    index,
+                                                                    'description',
+                                                                    e.target
+                                                                        .value,
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                !can_edit_fields
+                                                            }
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="mt-3 flex justify-end">
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        onClick={() =>
+                                                            removeOffering(
+                                                                index,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            !can_edit_fields
+                                                        }
+                                                    >
+                                                        Remove
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ),
+                                    )}
+                                </div>
                             </div>
                             <div>
                                 <Label>Owner</Label>

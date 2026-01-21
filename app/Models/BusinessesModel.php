@@ -45,4 +45,14 @@ class BusinessesModel extends Model
     {
         return $this->morphMany(CommentsModel::class, 'commentable');
     }
+
+    public function items()
+    {
+        return $this->hasMany(BusinessItem::class, 'business_id');
+    }
+
+    public function hours()
+    {
+        return $this->hasMany(BusinessHour::class, 'business_id');
+    }
 }

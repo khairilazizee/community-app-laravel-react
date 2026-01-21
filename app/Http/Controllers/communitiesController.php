@@ -52,8 +52,16 @@ class communitiesController extends Controller
 
         return Inertia::render('communities/show', [
             'community' => $community,
-            'posts' => PostsModel::where('community_id', $community->id)->latest()->get(),
-            'news' => NewsModel::where('community_id', $community->id)->latest()->get(),
+            'posts' => PostsModel::where('community_id', $community->id)
+                ->where('approval_status', 'approved')
+                ->where('is_active', true)
+                ->latest()
+                ->get(),
+            'news' => NewsModel::where('community_id', $community->id)
+                ->where('approval_status', 'approved')
+                ->where('is_active', true)
+                ->latest()
+                ->get(),
             'services' => ServicesModel::where('community_id', $community->id)->latest()->get(),
             'businesses' => $community->businesses()->latest()->get(),
             'is_member' => (bool) $member,
@@ -83,8 +91,20 @@ class communitiesController extends Controller
 
         return Inertia::render('communities/member', [
             'community' => $community,
-            'posts' => PostsModel::where('community_id', $community->id)->latest()->get(),
-            'news' => NewsModel::where('community_id', $community->id)->latest()->get(),
+            'posts' => PostsModel::where('community_id', $community->id)
+                ->where(function ($query) {
+                    $query->where('approval_status', 'approved')
+                        ->orWhere('user_id', Auth::id());
+                })
+                ->latest()
+                ->get(),
+            'news' => NewsModel::where('community_id', $community->id)
+                ->where(function ($query) {
+                    $query->where('approval_status', 'approved')
+                        ->orWhere('user_id', Auth::id());
+                })
+                ->latest()
+                ->get(),
             'services' => ServicesModel::where('community_id', $community->id)->latest()->get(),
             'businesses' => $community->businesses()->latest()->get(),
             'member' => [

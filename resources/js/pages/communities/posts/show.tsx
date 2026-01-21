@@ -22,6 +22,8 @@ type Post = {
     title: string;
     content: string;
     type: string;
+    approval_status: string;
+    tags?: { name: string }[];
 };
 
 type Props = {
@@ -78,6 +80,23 @@ export default function PostShow({ community, post }: Props) {
                         <CardHeader>
                             <CardTitle>{post.title}</CardTitle>
                             <CardDescription>{post.type}</CardDescription>
+                            {post.tags && post.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                                    {post.tags.map((tag) => (
+                                        <span
+                                            key={tag.name}
+                                            className="rounded-full border border-border px-2 py-0.5"
+                                        >
+                                            {tag.name}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                            {post.approval_status !== 'approved' && (
+                                <div className="text-xs text-muted-foreground">
+                                    This post is awaiting admin approval.
+                                </div>
+                            )}
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <p className="text-muted-foreground">

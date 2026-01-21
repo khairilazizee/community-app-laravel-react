@@ -44,4 +44,9 @@ class ServicesModel extends Model
     {
         return $this->morphMany(CommentsModel::class, 'commentable');
     }
+
+    public function offerings()
+    {
+        return $this->hasMany(ServiceOffering::class, 'service_id');
+    }
 }

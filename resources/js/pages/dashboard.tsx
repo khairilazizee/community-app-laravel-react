@@ -18,17 +18,26 @@ type Stats = {
     services: number;
     members: number;
     comments: number;
+    users?: number;
+    communities?: number;
 };
 
 export default function Dashboard({ stats }: { stats: Stats }) {
-    const items = [
+    const items: { label: string; value: number }[] = [];
+    if (stats.users !== undefined) {
+        items.push({ label: 'Users', value: stats.users });
+    }
+    if (stats.communities !== undefined) {
+        items.push({ label: 'Communities', value: stats.communities });
+    }
+    items.push(
         { label: 'Businesses', value: stats.businesses },
         { label: 'Services', value: stats.services },
         { label: 'Posts', value: stats.posts },
         { label: 'News', value: stats.news },
         { label: 'Members', value: stats.members },
         { label: 'Comments', value: stats.comments },
-    ];
+    );
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

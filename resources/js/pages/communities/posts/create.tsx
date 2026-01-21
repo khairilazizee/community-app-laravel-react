@@ -27,6 +27,7 @@ export default function PostsCreate({ community }: Props) {
         title: '',
         content: '',
         type: 'announcement',
+        tags: '',
     });
 
     const submit = (e: React.FormEvent) => {
@@ -74,6 +75,19 @@ export default function PostsCreate({ community }: Props) {
                                     }
                                 />
                             </div>
+                            <div>
+                                <Label>Tags (comma-separated)</Label>
+                                <Input
+                                    value={data.tags}
+                                    onChange={(e) =>
+                                        setData('tags', e.target.value)
+                                    }
+                                />
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                                Posts need admin approval before they appear
+                                publicly.
+                            </p>
                             <div className="flex gap-2">
                                 <Link
                                     href={`/communities/${community.id}/edit`}

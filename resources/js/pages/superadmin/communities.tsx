@@ -10,6 +10,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
+import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -24,17 +25,53 @@ type Community = {
     slug: string;
     description: string;
     is_private: boolean;
+    members_count: number;
+    deleted_at?: string | null;
 };
 
 type Props = {
-    communities: Community[];
+    activeCommunities: Community[];
+    deletedCommunities: Community[];
 };
 
-export default function Dashboard({ communities }: Props) {
+export default function Dashboard({
+    activeCommunities,
+    deletedCommunities,
+}: Props) {
+    const [activeTab, setActiveTab] = useState<'active' | 'deleted'>(
+        'active',
+    );
+    const communities =
+        activeTab === 'active' ? activeCommunities : deletedCommunities;
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Communities List" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+                <div className="inline-flex w-fit gap-1 rounded-lg bg-neutral-100 p-1">
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab('active')}
+                        className={`rounded-md px-3.5 py-1.5 text-sm transition-colors ${
+                            activeTab === 'active'
+                                ? 'bg-white shadow-xs'
+                                : 'text-neutral-500 hover:bg-neutral-200/60 hover:text-black'
+                        }`}
+                    >
+                        Available
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab('deleted')}
+                        className={`rounded-md px-3.5 py-1.5 text-sm transition-colors ${
+                            activeTab === 'deleted'
+                                ? 'bg-white shadow-xs'
+                                : 'text-neutral-500 hover:bg-neutral-200/60 hover:text-black'
+                        }`}
+                    >
+                        Deleted
+                    </button>
+                </div>
                 <Table>
                     {/* <TableCaption>Communities List</TableCaption> */}
                     <TableHeader>
@@ -48,13 +85,25 @@ export default function Dashboard({ communities }: Props) {
                     <TableBody>
                         {communities.map((community) => {
                             return (
-                                <TableRow>
-                                    <TableCell>Community 1</TableCell>
-                                    <TableCell>community-1</TableCell>
+                                <TableRow key={community.id}>
+                                    <TableCell>{community.name}</TableCell>
+                                    <TableCell>{community.slug}</TableCell>
                                     <TableCell>
-                                        <Badge color="destructive">No</Badge>
+                                        <Badge
+                                            variant={
+                                                community.is_private
+                                                    ? 'destructive'
+                                                    : 'secondary'
+                                            }
+                                        >
+                                            {community.is_private
+                                                ? 'Private'
+                                                : 'Public'}
+                                        </Badge>
                                     </TableCell>
-                                    <TableCell>10</TableCell>
+                                    <TableCell>
+                                        {community.members_count}
+                                    </TableCell>
                                 </TableRow>
                             );
                         })}
@@ -62,7 +111,9 @@ export default function Dashboard({ communities }: Props) {
                         {communities.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={6}>
-                                    No Community found
+                                    {activeTab === 'active'
+                                        ? 'No available communities found'
+                                        : 'No deleted communities found'}
                                 </TableCell>
                             </TableRow>
                         )}
